@@ -16,4 +16,4 @@ slack:
   brew:
     brew_master_id: ASDF1234
     brew_master_username: frodo
-    valid_command_tokens: asdf1234,qwert5678
+  valid_command_tokens: asdf1234,qwert5678

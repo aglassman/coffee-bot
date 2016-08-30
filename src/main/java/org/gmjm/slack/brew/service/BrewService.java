@@ -6,21 +6,19 @@ import org.gmjm.slack.api.hook.HookResponse;
 import org.gmjm.slack.api.message.SlackMessageBuilder;
 import org.gmjm.slack.api.model.SlackCommand;
 import org.gmjm.slack.brew.repositories.BrewRepository;
-import org.gmjm.slack.command.processor.SlackCommandProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gmjm.slack.command.CommandHandlerRepository;
+import org.gmjm.slack.command.SlackRequestContext;
+import org.gmjm.slack.service.SlashCommandHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.gmjm.slack.api.hook.HookResponse.Status;
 
 @Service("brewService")
-public class BrewService implements SlackCommandProcessor
+public class BrewService extends SlashCommandHandlerService<BrewRequestContext>
 {
 	private static final String COFFEE_BOT_USERNAME = "coffee-master";
 	private static final String COFFEE_EMOJI = "coffee";
 	private static final String COFFEE_CHANNEL = "coffee";
-
-	private static final Logger logger = LoggerFactory.getLogger(BrewService.class);
 
 	@Autowired
 	private HookRequest hookRequest;
@@ -29,61 +27,49 @@ public class BrewService implements SlackCommandProcessor
 	private HookRequestFactory hookRequestFactory;
 
 	@Autowired
-	BrewCommandHandlers brewCommandHandlers;
+	@Qualifier("brewCommandHandlerRepository")
+	protected CommandHandlerRepository<BrewRequestContext> commandHandlerRepository;
 
 	@Autowired
 	BrewRepository brewRepository;
 
+
+	public BrewService()
+	{
+		super("/coffee");
+	}
+
+
 	@Override
-	public void process(SlackCommand slackCommand) {
-		BrewCommand brewCommand = new BrewCommand(slackCommand.getText());
-		BrewRequestContext brc = new BrewRequestContext(slackCommand,brewRepository,brewCommand,slackCommand.getUserName());
-
-		sendPrivate(brc);
-		sendPublic(brc);
+	protected BrewRequestContext getSlackRequestContext(SlackCommand slackCommand)
+	{
+		return new BrewRequestContext(
+			slackCommand,
+			brewRepository,
+			new BrewCommand(slackCommand.getText()),
+			slackCommand.getUserName());
 	}
 
-	private void sendPrivate(BrewRequestContext brc) {
 
-		try {
-			String handlerName = brc.brewCommand.command + "_ephemeral";
+	@Override
+	protected HookResponse privateCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+	{
+		slackMessageBuilder.setIconEmoji(COFFEE_EMOJI);
+		slackMessageBuilder.setResponseType("ephemeral");
+		slackMessageBuilder.setUsername(COFFEE_BOT_USERNAME);
 
-			SlackMessageBuilder builder = brewCommandHandlers.handle(handlerName,brc);
+		HookRequest responseHook = hookRequestFactory.createHookRequest(slackRequestContext.slackCommand.getResponseUrl());
 
-			if(builder == null) return;
-
-			builder.setIconEmoji(COFFEE_EMOJI);
-			builder.setResponseType("ephemeral");
-			builder.setUsername(COFFEE_BOT_USERNAME);
-
-			HookRequest responseHook = hookRequestFactory.createHookRequest(brc.slackCommand.getResponseUrl());
-
-			HookResponse hookResponse = responseHook.send(builder.build());
-
-			if(Status.FAILED.equals(hookResponse.getStatus())) {
-				logger.error("Failed to send response: " + hookResponse.getMessage());
-			}
-
-		} catch (Exception e) {
-			logger.error("Failed to send hookRequest.",e);
-		}
+		return responseHook.send(slackMessageBuilder.build());
 	}
 
-	private void sendPublic(BrewRequestContext brc) {
-		try {
-			String handlerName = brc.brewCommand.command + "_public";
+	@Override
+	protected HookResponse publicCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+	{
+		slackMessageBuilder.setIconEmoji(COFFEE_EMOJI);
+		slackMessageBuilder.setChannel(COFFEE_CHANNEL);
+		slackMessageBuilder.setUsername(COFFEE_BOT_USERNAME);
 
-			SlackMessageBuilder builder = brewCommandHandlers.handle(handlerName,brc);
-
-			if(builder == null) return;
-
-			builder.setIconEmoji(COFFEE_EMOJI);
-			builder.setChannel(COFFEE_CHANNEL);
-			builder.setUsername(COFFEE_BOT_USERNAME);
-
-			hookRequest.send(builder.build());
-		} catch (Exception e) {
-			logger.error("Failed to send hookRequest.",e);
-		}
+		return hookRequest.send(slackMessageBuilder.build());
 	}
 }

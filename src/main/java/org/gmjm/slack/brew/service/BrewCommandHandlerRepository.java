@@ -3,17 +3,16 @@ package org.gmjm.slack.brew.service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.gmjm.slack.api.message.SlackMessageBuilder;
 import org.gmjm.slack.api.message.SlackMessageFactory;
 import org.gmjm.slack.brew.repositories.BrewRepository;
+import org.gmjm.slack.command.CommandHandlerRepository;
+import org.gmjm.slack.command.Register;
 import org.gmjm.slack.core.message.UserRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,47 +24,28 @@ import org.springframework.util.StringUtils;
 import org.gmjm.slack.brew.domain.Brew;
 
 @Service
-public class BrewCommandHandlers
+public class BrewCommandHandlerRepository extends CommandHandlerRepository<BrewRequestContext>
 {
 
-	//private static final String BREW_MASTER = "<@U03JHGAP3|Nick>";
-
 	@Value("${slack.brew.brew_master_id}")
-	private String brewMasterId;
+	protected String brewMasterId;
 
 	@Value("${slack.brew.brew_master_username}")
-	private String brewMasterUsername;
+	protected String brewMasterUsername;
 
-	private static final Logger logger = LoggerFactory.getLogger(BrewCommandHandlers.class);
+	private static final Logger logger = LoggerFactory.getLogger(BrewCommandHandlerRepository.class);
 
 	private static FastDateFormat fdf = FastDateFormat.getInstance("EEE, MMM d @ h:mm a", TimeZone.getTimeZone("CST"),null);
 
 	@Autowired
-	private SlackMessageFactory slackMessageFactory;
+	protected SlackMessageFactory slackMessageFactory;
 
-	private Map<String,Function<BrewRequestContext,SlackMessageBuilder>> commands = new HashMap<>();
 
-	public BrewCommandHandlers() {
-		commands.put("debug_ephemeral", this::debug);
-		commands.put("brew_ephemeral", this::brewPrivate);
-		commands.put("gone_ephemeral", this::gonePrivate);
-		commands.put("today_ephemeral", this::today);
-		commands.put("help_ephemeral", this::help);
-		commands.put("supersecretreset_ephemeral", this::reset);
-		commands.put("_ephemeral", this::brewStatus);
-
-		commands.put("brew_public", this::brew);
-		commands.put("gone_public", this::gone);
-		commands.put("_public", this::consume);
+	public BrewCommandHandlerRepository() {
+		super();
 	}
 
-	public SlackMessageBuilder handle(String handlerName, BrewRequestContext brc)
-	{
-		Function<BrewRequestContext,SlackMessageBuilder> handler = commands.get(handlerName);
-
-		return handler == null ? null : handler.apply(brc);
-	}
-
+	@Register
 	SlackMessageBuilder help(BrewRequestContext brc) {
 		logger.info("Help");
 
@@ -82,7 +62,7 @@ public class BrewCommandHandlers
 		return builder.setText(sb.toString());
 	}
 
-
+	@Register
 	SlackMessageBuilder today(BrewRequestContext brc)
 	{
 		logger.info("Getting Today's brews");
@@ -104,7 +84,7 @@ public class BrewCommandHandlers
 
 	}
 
-
+	@Register(name = "")
 	SlackMessageBuilder brewStatus(BrewRequestContext brc)
 	{
 		logger.info("Getting Status");
@@ -122,7 +102,7 @@ public class BrewCommandHandlers
 		return slackMessageFactory.createMessageBuilder().setText(status);
 	}
 
-
+	@Register(value = ResponseType.PUBLIC, name = "brew")
 	SlackMessageBuilder brew(BrewRequestContext brc)
 	{
 		logger.info("Brewing");
@@ -146,7 +126,7 @@ public class BrewCommandHandlers
 		return slackMessageFactory.createMessageBuilder().setText(message);
 	}
 
-
+	@Register(name = "brew")
 	SlackMessageBuilder brewPrivate(BrewRequestContext brc)
 	{
 		logger.info("Brewing-private");
@@ -154,7 +134,7 @@ public class BrewCommandHandlers
 		return slackMessageFactory.createMessageBuilder().setText(String.format("You truly are a brew master %s.",brc.slackCommand.getMsgFriendlyUser()));
 	}
 
-
+	@Register(ResponseType.PUBLIC)
 	SlackMessageBuilder gone(BrewRequestContext brc)
 	{
 		logger.info("Gone");
@@ -170,7 +150,7 @@ public class BrewCommandHandlers
 		return slackMessageFactory.createMessageBuilder().setText(message);
 	}
 
-
+	@Register(name = "gone")
 	SlackMessageBuilder gonePrivate(BrewRequestContext brc)
 	{
 		logger.info("Gone-private");
@@ -178,7 +158,7 @@ public class BrewCommandHandlers
 		return slackMessageFactory.createMessageBuilder().setText(String.format("The coffee is gone, this is unfortunate."));
 	}
 
-
+	@Register
 	SlackMessageBuilder debug(BrewRequestContext brc)
 	{
 		logger.info("Debugging");
@@ -189,16 +169,6 @@ public class BrewCommandHandlers
 			.get();
 
 		return slackMessageFactory.createMessageBuilder().setText(response);
-	}
-
-
-	SlackMessageBuilder reset(BrewRequestContext brc)
-	{
-		logger.info("Reset");
-
-		brc.brewRepository.deleteAll();
-
-		return slackMessageFactory.createMessageBuilder().setText("It has been done.");
 	}
 
 	SlackMessageBuilder consume(BrewRequestContext brc)

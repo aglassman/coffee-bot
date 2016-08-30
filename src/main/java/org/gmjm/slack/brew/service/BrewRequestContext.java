@@ -2,10 +2,10 @@ package org.gmjm.slack.brew.service;
 
 import org.gmjm.slack.api.model.SlackCommand;
 import org.gmjm.slack.brew.repositories.BrewRepository;
+import org.gmjm.slack.command.SlackRequestContext;
 
-public class BrewRequestContext
+public class BrewRequestContext extends SlackRequestContext
 {
-	public final SlackCommand slackCommand;
 	public final BrewRepository brewRepository;
 	public final BrewCommand brewCommand;
 	public final String user;
@@ -13,7 +13,7 @@ public class BrewRequestContext
 
 	public BrewRequestContext(SlackCommand slackCommand, BrewRepository brewRepository, BrewCommand brewCommand, String user)
 	{
-		this.slackCommand = slackCommand;
+		super(slackCommand);
 		this.brewRepository = brewRepository;
 		this.brewCommand = brewCommand;
 		this.user = user;

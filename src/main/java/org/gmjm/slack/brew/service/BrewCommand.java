@@ -3,6 +3,7 @@ package org.gmjm.slack.brew.service;
 import java.util.Arrays;
 
 class BrewCommand {
+
 	public final String command;
 	public final String text;
 
@@ -18,6 +19,7 @@ class BrewCommand {
 			this.text = Arrays.stream(splitText)
 				.skip(1)
 				.reduce((a, b) -> a + " " + b)
+				.map(text -> text.trim())
 				.orElse("");
 		}
 
