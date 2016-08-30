@@ -21,10 +21,7 @@ public class BrewService extends SlashCommandHandlerService<BrewRequestContext>
 	private static final String COFFEE_CHANNEL = "coffee";
 
 	@Autowired
-	private HookRequest hookRequest;
-
-	@Autowired
-	private HookRequestFactory hookRequestFactory;
+	protected HookRequest hookRequest;
 
 	@Autowired
 	@Qualifier("brewCommandHandlerRepository")
@@ -52,24 +49,20 @@ public class BrewService extends SlashCommandHandlerService<BrewRequestContext>
 
 
 	@Override
-	protected HookResponse privateCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+	protected SlackMessageBuilder privateCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
 	{
-		slackMessageBuilder.setIconEmoji(COFFEE_EMOJI);
-		slackMessageBuilder.setResponseType("ephemeral");
-		slackMessageBuilder.setUsername(COFFEE_BOT_USERNAME);
-
-		HookRequest responseHook = hookRequestFactory.createHookRequest(slackRequestContext.slackCommand.getResponseUrl());
-
-		return responseHook.send(slackMessageBuilder.build());
+		return slackMessageBuilder
+			.setIconEmoji(COFFEE_EMOJI)
+			.setUsername(COFFEE_BOT_USERNAME);
 	}
 
 	@Override
-	protected HookResponse publicCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+	protected SlackMessageBuilder publicCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
 	{
-		slackMessageBuilder.setIconEmoji(COFFEE_EMOJI);
-		slackMessageBuilder.setChannel(COFFEE_CHANNEL);
-		slackMessageBuilder.setUsername(COFFEE_BOT_USERNAME);
+		return slackMessageBuilder
+			.setIconEmoji(COFFEE_EMOJI)
+			.setChannel(COFFEE_CHANNEL)
+			.setUsername(COFFEE_BOT_USERNAME);
 
-		return hookRequest.send(slackMessageBuilder.build());
 	}
 }

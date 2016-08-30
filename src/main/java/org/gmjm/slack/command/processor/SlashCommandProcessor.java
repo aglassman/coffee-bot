@@ -27,14 +27,14 @@ public abstract class SlashCommandProcessor implements SlackCommandProcessor
 
 
 		@Override
-		protected HookResponse privateCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+		protected SlackMessageBuilder privateCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
 		{
 			return null;
 		}
 
 
 		@Override
-		protected HookResponse publicCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
+		protected SlackMessageBuilder publicCallback(SlackMessageBuilder slackMessageBuilder, SlackRequestContext slackRequestContext)
 		{
 			return null;
 		}
