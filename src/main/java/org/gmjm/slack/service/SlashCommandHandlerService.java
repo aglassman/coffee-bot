@@ -1,11 +1,15 @@
 package org.gmjm.slack.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.gmjm.slack.api.hook.HookRequest;
 import org.gmjm.slack.api.hook.HookRequestFactory;
 import org.gmjm.slack.api.hook.HookResponse;
 import org.gmjm.slack.api.message.SlackMessageBuilder;
 import org.gmjm.slack.api.model.SlackCommand;
 import org.gmjm.slack.command.CommandHandlerRepository;
+import org.gmjm.slack.command.NamedCommand;
 import org.gmjm.slack.command.SlackRequestContext;
 import org.gmjm.slack.command.processor.SlashCommandProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,14 +53,27 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 
 		try {
 
-			getCommandHandlerRepository().listFunctionsFor(getCommandKey(slackRequestContext), CommandHandlerRepository.ResponseType.EPHEMERAL)
-				.stream()
-				.peek(namedCommand -> logger.info("Found: " + namedCommand.toString()))
+			List<NamedCommand<T>> commands =
+				getCommandHandlerRepository()
+					.listFunctionsFor(
+						getCommandKey(slackRequestContext),
+						CommandHandlerRepository.ResponseType.EPHEMERAL);
+
+			commands.stream()
+				.map(Object::toString)
+				.map(s -> "Found: " + s)
+				.forEach(logger::info);
+
+			List<SlackMessageBuilder> outgoingMessageBuilders = commands.stream()
 				.map(namedCommand -> namedCommand.apply(slackRequestContext))
-				.map(builder -> {
-					return privateCallback(builder,slackRequestContext)
-						.setResponseType("ephemeral");
-				})
+				.collect(Collectors.toList());
+
+			outgoingMessageBuilders.forEach(messageBuilder -> {
+				privateCallback(messageBuilder,slackRequestContext)
+					.setResponseType("ephemeral");
+			});
+
+			List<HookResponse> hookResponses = outgoingMessageBuilders.stream()
 				.map(slackMessageBuilder -> {
 					String toSend = slackMessageBuilder.build();
 					logger.info("sendPrivate: " + toSend);
@@ -64,6 +81,9 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 						.createHookRequest(slackRequestContext.slackCommand.getResponseUrl())
 						.send(toSend);
 				})
+				.collect(Collectors.toList());
+
+			hookResponses.stream()
 				.filter(HookResponse.Status.FAILED::equals)
 				.forEach(hookResponse -> {
 					logger.error("Failed to send private response: " + hookResponse.getMessage());
