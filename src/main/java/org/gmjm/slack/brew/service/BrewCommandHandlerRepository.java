@@ -45,6 +45,12 @@ public class BrewCommandHandlerRepository extends CommandHandlerRepository<BrewR
 		super();
 	}
 
+	public BrewCommandHandlerRepository(String brewMasterId, String brewMasterUsername, SlackMessageFactory slackMessageFactory) {
+		this.brewMasterId = brewMasterId;
+		this.brewMasterUsername = brewMasterUsername;
+		this.slackMessageFactory = slackMessageFactory;
+	}
+
 	@Register
 	SlackMessageBuilder help(BrewRequestContext brc) {
 		logger.info("Help");

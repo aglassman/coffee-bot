@@ -1,8 +1,6 @@
 package org.gmjm.slack.brew.service;
 
 import org.gmjm.slack.api.hook.HookRequest;
-import org.gmjm.slack.api.hook.HookRequestFactory;
-import org.gmjm.slack.api.hook.HookResponse;
 import org.gmjm.slack.api.message.SlackMessageBuilder;
 import org.gmjm.slack.api.model.SlackCommand;
 import org.gmjm.slack.brew.repositories.BrewRepository;
@@ -38,6 +36,13 @@ public class BrewService extends SlashCommandHandlerService<BrewRequestContext>
 
 
 	@Override
+	protected CommandHandlerRepository<BrewRequestContext> getCommandHandlerRepository()
+	{
+		return commandHandlerRepository;
+	}
+
+
+	@Override
 	protected BrewRequestContext getSlackRequestContext(SlackCommand slackCommand)
 	{
 		return new BrewRequestContext(
@@ -45,6 +50,13 @@ public class BrewService extends SlashCommandHandlerService<BrewRequestContext>
 			brewRepository,
 			new BrewCommand(slackCommand.getText()),
 			slackCommand.getUserName());
+	}
+
+
+	@Override
+	protected String getCommandKey(BrewRequestContext brewRequestContext)
+	{
+		return brewRequestContext.brewCommand.command;
 	}
 
 

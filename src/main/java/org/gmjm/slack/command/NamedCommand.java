@@ -3,6 +3,7 @@ package org.gmjm.slack.command;
 import java.util.function.Function;
 
 import org.gmjm.slack.api.message.SlackMessageBuilder;
+import org.springframework.util.Assert;
 
 public class NamedCommand<T> implements Function<T, SlackMessageBuilder>
 {
@@ -13,16 +14,25 @@ public class NamedCommand<T> implements Function<T, SlackMessageBuilder>
 
 	public NamedCommand(String commandName, CommandHandlerRepository.ResponseType responseType, Function<T, SlackMessageBuilder> commandFunction)
 	{
-		this.commandName = commandName;
+		Assert.notNull(commandName);
+		Assert.notNull(responseType);
+		Assert.notNull(commandFunction);
+
+		this.commandName = commandName.trim();
 		this.responseType = responseType;
 		this.commandFunction = commandFunction;
 	}
 
 
+	/**
+	 * Tests if the input commandName matches this.commandName.
+	 * Input is trimmed, and case is ignored.
+	 * @param commandName
+	 * @return if this command's name matches commandName.
+	 */
 	public boolean matches(String commandName)
 	{
-		boolean val = this.commandName.equals(commandName);
-		return val;
+		return commandName != null ? this.commandName.equalsIgnoreCase(commandName.trim()) : false;
 	}
 
 	public boolean matches(CommandHandlerRepository.ResponseType responseType)
@@ -41,12 +51,24 @@ public class NamedCommand<T> implements Function<T, SlackMessageBuilder>
 		return matches(commandName) && matches(responseType);
 	}
 
+
+	public String getCommandName()
+	{
+		return commandName;
+	}
+
+
+	public CommandHandlerRepository.ResponseType getResponseType()
+	{
+		return responseType;
+	}
+
+
 	@Override
 	public SlackMessageBuilder apply(T t)
 	{
 		return commandFunction.apply(t);
 	}
-
 
 	@Override
 	public boolean equals(Object o)

@@ -30,7 +30,6 @@ final class SlashCommandController
 	private static final Logger logger = LoggerFactory.getLogger(SlashCommandController.class);
 
 	@Autowired
-	@Qualifier("brewService")
 	private List<SlashCommandProcessor> commandProcessors;
 
 	@RequestMapping(method = RequestMethod.POST, value = "/")

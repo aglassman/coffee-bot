@@ -28,6 +28,16 @@ public final class Brew {
 	}
 
 
+	public Brew(Long id, String brewName, Date brewDate, String brewedBy, boolean gone)
+	{
+		this.id = id;
+		this.brewName = brewName;
+		this.brewDate = brewDate;
+		this.brewedBy = brewedBy;
+		this.gone = gone;
+	}
+
+
 	public Long getId()
 	{
 		return id;

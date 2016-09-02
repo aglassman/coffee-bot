@@ -2,6 +2,7 @@ package org.gmjm.slack.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ public class CommandHandlerRepository<T extends SlackRequestContext>
 			.filter(method -> method.getAnnotation(Register.class) != null)
 			.forEach(method -> {
 				Register toRegister = method.getAnnotation(Register.class);
+				method.setAccessible(true);
 				register(
 					"*".equals(toRegister.name()) ? method.getName() : toRegister.name(),
 					new Function<T, SlackMessageBuilder>()
@@ -86,6 +88,10 @@ public class CommandHandlerRepository<T extends SlackRequestContext>
 		return commandList.stream()
 			.filter(namedCommand -> namedCommand.matches(commandName,responseType))
 			.collect(Collectors.toList());
+	}
+
+	public List<NamedCommand<T>> listAllFunctions() {
+		return Collections.unmodifiableList(commandList);
 	}
 
 }

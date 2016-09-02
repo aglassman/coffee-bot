@@ -20,18 +20,19 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 	@Autowired
 	protected HookRequest hookRequest;
 
-	protected CommandHandlerRepository<T> commandHandlerRepository;
-
-
 	public SlashCommandHandlerService(String slashCommandName)
 	{
 		super(slashCommandName);
 	}
 
+	abstract protected CommandHandlerRepository<T> getCommandHandlerRepository();
+
 	@Override
 	public void process(SlackCommand slackCommand) {
 
-		if(commandHandlerRepository == null) {
+		logger.info("processing: " + slackCommand.getAll().toString());
+
+		if(getCommandHandlerRepository() == null) {
 			throw new IllegalStateException("commandHandlerRepository cannot be null");
 		}
 
@@ -42,22 +43,26 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 	}
 
 	abstract protected T getSlackRequestContext(SlackCommand slackCommand);
+	abstract protected String getCommandKey(T slackRequestContext);
 
 	private void sendPrivate(final T slackRequestContext) {
 
 		try {
 
-			commandHandlerRepository.listFunctionsFor(slackRequestContext.getSlackCommand().getCommand(), CommandHandlerRepository.ResponseType.EPHEMERAL)
+			getCommandHandlerRepository().listFunctionsFor(getCommandKey(slackRequestContext), CommandHandlerRepository.ResponseType.EPHEMERAL)
 				.stream()
-				.map(command -> command.apply(slackRequestContext))
+				.peek(namedCommand -> logger.info("Found: " + namedCommand.toString()))
+				.map(namedCommand -> namedCommand.apply(slackRequestContext))
 				.map(builder -> {
 					return privateCallback(builder,slackRequestContext)
 						.setResponseType("ephemeral");
 				})
 				.map(slackMessageBuilder -> {
+					String toSend = slackMessageBuilder.build();
+					logger.info("sendPrivate: " + toSend);
 					return hookRequestFactory
 						.createHookRequest(slackRequestContext.slackCommand.getResponseUrl())
-						.send(slackMessageBuilder.build());
+						.send(toSend);
 				})
 				.filter(HookResponse.Status.FAILED::equals)
 				.forEach(hookResponse -> {
@@ -65,7 +70,7 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 				});
 
 		} catch (Exception e) {
-			logger.error("Failed to execute hookRequest.",e);
+			logger.error("Failed to process command.",e);
 		}
 	}
 
@@ -74,14 +79,17 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 	private void sendPublic(final T slackRequestContext) {
 		try {
 
-			commandHandlerRepository.listFunctionsFor(slackRequestContext.getSlackCommand().getCommand(), CommandHandlerRepository.ResponseType.PUBLIC)
+			getCommandHandlerRepository().listFunctionsFor(getCommandKey(slackRequestContext), CommandHandlerRepository.ResponseType.PUBLIC)
 				.stream()
-				.map(brewCommand -> brewCommand.apply(slackRequestContext))
+				.peek(namedCommand -> logger.info("Found: " + namedCommand.toString()))
+				.map(namedCommand -> namedCommand.apply(slackRequestContext))
 				.map(builder -> publicCallback(builder,slackRequestContext))
 				.map(slackMessageBuilder -> {
+					String toSend = slackMessageBuilder.build();
+					logger.info("sendPublic: " + toSend);
 					return hookRequestFactory
 						.createHookRequest(slackRequestContext.slackCommand.getResponseUrl())
-						.send(slackMessageBuilder.build());
+						.send(toSend);
 				})
 				.filter(HookResponse.Status.FAILED::equals)
 				.forEach(hookResponse -> {
@@ -89,7 +97,7 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 				});
 
 		} catch (Exception e) {
-			logger.error("Failed to execute hookRequest.",e);
+			logger.error("Failed to process command.",e);
 		}
 	}
 
