@@ -40,7 +40,6 @@ dependencies {
     compile group: 'org.springframework.cloud', name: 'spring-cloud-core', version:'1.2.1.RELEASE'
     compile group: 'com.github.greatermkemeetup', name: 'slack-integrations-core', version:'1.0.2'
     compile group: 'com.github.greatermkemeetup', name: 'slack-integrations-api', version:'1.0.2'
-    compile group: 'org.gmjm', name: 'nashorn-library', version:'1.0.0'
     compile 'commons-io:commons-io:2.4'
     testCompile group: 'com.jayway.jsonpath', name: 'json-path', version:'0.9.1'
 }

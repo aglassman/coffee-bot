@@ -12,27 +12,44 @@ import org.gmjm.slack.command.CommandHandlerRepository;
 import org.gmjm.slack.command.NamedCommand;
 import org.gmjm.slack.command.SlackRequestContext;
 import org.gmjm.slack.command.processor.SlashCommandProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 public abstract class SlashCommandHandlerService<T extends SlackRequestContext> extends SlashCommandProcessor
 {
 
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	protected HookRequestFactory hookRequestFactory;
 
-	@Autowired
-	protected HookRequest hookRequest;
 
 	public SlashCommandHandlerService(String slashCommandName)
 	{
 		super(slashCommandName);
 	}
 
+	public SlashCommandHandlerService(String slashCommandName, HookRequestFactory hookRequestFactory) {
+		super(slashCommandName);
+		this.hookRequestFactory = hookRequestFactory;
+	}
+
+
+	/**
+	 * For test purposes only.
+	 */
+	void testBootstrap(HookRequestFactory hookRequestFactory) {
+		logger = LoggerFactory.getLogger(this.getClass());
+		this.hookRequestFactory = hookRequestFactory;
+	}
+
 	abstract protected CommandHandlerRepository<T> getCommandHandlerRepository();
 
 	@Override
 	public void process(SlackCommand slackCommand) {
+		Assert.notNull(slackCommand);
 
 		logger.info("processing: " + slackCommand.getAll().toString());
 
@@ -53,11 +70,17 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 
 		try {
 
+			final String commandKey = getCommandKey(slackRequestContext);
+
 			List<NamedCommand<T>> commands =
 				getCommandHandlerRepository()
 					.listFunctionsFor(
-						getCommandKey(slackRequestContext),
+						commandKey,
 						CommandHandlerRepository.ResponseType.EPHEMERAL);
+
+			if(commands.size() == 0) {
+				logger.info("No commands found for commandKey: " + commandKey);
+			}
 
 			commands.stream()
 				.map(Object::toString)
@@ -72,7 +95,6 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 				privateCallback(messageBuilder,slackRequestContext)
 					.setResponseType("ephemeral");
 			});
-
 			List<HookResponse> hookResponses = outgoingMessageBuilders.stream()
 				.map(slackMessageBuilder -> {
 					String toSend = slackMessageBuilder.build();
@@ -84,7 +106,7 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 				.collect(Collectors.toList());
 
 			hookResponses.stream()
-				.filter(HookResponse.Status.FAILED::equals)
+				.filter(hookResponse -> HookResponse.Status.FAILED.equals(hookResponse.getStatus()))
 				.forEach(hookResponse -> {
 					logger.error("Failed to send private response: " + hookResponse.getMessage());
 				});
@@ -111,7 +133,7 @@ public abstract class SlashCommandHandlerService<T extends SlackRequestContext> 
 						.createHookRequest(slackRequestContext.slackCommand.getResponseUrl())
 						.send(toSend);
 				})
-				.filter(HookResponse.Status.FAILED::equals)
+				.filter(hookResponse -> HookResponse.Status.FAILED.equals(hookResponse.getStatus()))
 				.forEach(hookResponse -> {
 					logger.error("Failed to send public response: " + hookResponse.getMessage());
 				});
