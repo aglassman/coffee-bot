@@ -173,5 +173,55 @@ public class SlashCommandHandlerServiceTest
 
 	}
 
+	@Test()
+	public void testProcessSendPublicOneCommandSuccess() {
+		HookRequestFactory hookRequestFactory = mock(HookRequestFactory.class);
+
+		SlashCommandHandlerService<SlackRequestContext> slashCommandHandlerService =
+			mock(SlashCommandHandlerService.class, CALLS_REAL_METHODS);
+		slashCommandHandlerService.testBootstrap(hookRequestFactory);
+
+		Map<String,String> params = new HashMap<>();
+		params.put("token","asdf");
+		params.put("response_url","http://example.com");
+		SlackCommand slackCommand = new SlackCommandMapImpl(params);
+
+		slackCommand.getAll().toString();
+
+		CommandHandlerRepository<SlackRequestContext> repository = mock(CommandHandlerRepository.class);
+
+		SlackMessageBuilder messageBuilder =  mock(SlackMessageBuilder.class);
+
+		Function<SlackRequestContext,SlackMessageBuilder> func = o -> messageBuilder;
+
+		SlackRequestContext slackRequestContext = new SlackRequestContext(slackCommand);
+
+		when(slashCommandHandlerService.getSlackRequestContext(any())).thenReturn(slackRequestContext);
+		when(slashCommandHandlerService.getCommandHandlerRepository()).thenReturn(repository);
+		when(slashCommandHandlerService.getCommandKey(any())).thenReturn("testKey");
+		when(repository.listFunctionsFor("testKey", CommandHandlerRepository.ResponseType.EPHEMERAL))
+			.thenReturn(Arrays.asList(
+				new NamedCommand(
+					"testKey",
+					CommandHandlerRepository.ResponseType.PUBLIC,
+					func)
+			));
+
+		when(slashCommandHandlerService.publicCallback(messageBuilder,slackRequestContext)).thenReturn(messageBuilder);
+
+		HookRequest hookRequest = mock(HookRequest.class);
+		HookResponse hookResponse = mock(HookResponse.class);
+		when(hookRequestFactory.createHookRequest("http://example.com")).thenReturn(hookRequest);
+		when(messageBuilder.build()).thenReturn("message text");
+		when(hookRequest.send("message text")).thenReturn(hookResponse);
+		when(hookResponse.getStatus()).thenReturn(HookResponse.Status.SUCCESS);
+		when(hookResponse.getMessage()).thenReturn("mock only");
+
+		slashCommandHandlerService.process(slackCommand);
+
+		verify(hookResponse,times(0)).getMessage();
+
+	}
+
 
 }

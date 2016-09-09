@@ -43,3 +43,5 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     testCompile group: 'com.jayway.jsonpath', name: 'json-path', version:'0.9.1'
 }
+
+jar.archiveName = "coffee-bot.jar"

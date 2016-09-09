@@ -1,7 +1,0 @@
----
-applications:
-  - name: springboot-slack-integrations
-    buildpack: java_buildpack
-    path: target/springboot-slack-integrations-1.0.0.jar
-  - services:
-    - mysql

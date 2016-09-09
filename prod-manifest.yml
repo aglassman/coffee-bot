@@ -1,0 +1,7 @@
+---
+applications:
+  - name: coffee-bot
+    buildpack: java_buildpack
+    path: build/libs/coffee-bot.jar
+  - services:
+    - mysql
