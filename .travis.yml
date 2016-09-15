@@ -1,4 +1,5 @@
 deploy:
+  edge: true
   provider: cloudfoundry
   api: https://api.run.pivotal.io
   username: andrew.glassman+pivotal@gmail.com
