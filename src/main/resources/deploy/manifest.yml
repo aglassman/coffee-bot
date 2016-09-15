@@ -1,9 +1,10 @@
 ---
 applications:
-- name: coffee-bot-${version}
+- name: coffee-bot-blue
   buildpack: java_buildpack
   path: build/libs/coffee-bot-${version}.jar
   memory: 1024M
   instances: 1
   services:
   - mysql
+  no-route: true
