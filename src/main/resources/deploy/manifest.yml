@@ -1,8 +1,8 @@
 ---
 applications:
-- name: coffee-bot-test
+- name: coffee-bot-${version}
   buildpack: java_buildpack
-  path: build/libs/coffee-bot.jar
+  path: build/libs/coffee-bot-${version}.jar
   memory: 1024M
   instances: 1
   services:

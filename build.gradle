@@ -44,4 +44,12 @@ dependencies {
     testCompile group: 'com.jayway.jsonpath', name: 'json-path', version:'0.9.1'
 }
 
-jar.archiveName = "coffee-bot.jar"
+task filter(type: Copy) {
+    from 'src/main/resources/deploy'
+    into '.'
+    // Substitute property tokens in files
+    expand('version': version)
+
+}
+
+assemble.dependsOn filter
