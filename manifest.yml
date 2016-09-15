@@ -1,9 +1,9 @@
 ---
 applications:
-  - name: coffee-bot-test
-    buildpack: java_buildpack
-    path: build/libs/coffee-bot.jar
-    memory: 1024M
-    instances: 1
-  - services:
-    - mysql-test
+- name: coffee-bot-test
+  buildpack: java_buildpack
+  path: build/libs/coffee-bot.jar
+  memory: 1024M
+  instances: 1
+  services:
+  - mysql
