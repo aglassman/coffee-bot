@@ -1,3 +1,6 @@
+language: java
+rvm:
+  - 2.0.0
 deploy:
   edge: true
   sudo: required
