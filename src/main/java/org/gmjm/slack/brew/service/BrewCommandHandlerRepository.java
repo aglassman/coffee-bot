@@ -177,6 +177,30 @@ public class BrewCommandHandlerRepository extends CommandHandlerRepository<BrewR
 		return slackMessageFactory.createMessageBuilder().setText(response);
 	}
 
+	@Register(ResponseType.EPHEMERAL)
+	SlackMessageBuilder last(BrewRequestContext brc) {
+		logger.info("Retrieving last brews: " + brc.brewCommand.text);
+
+		try
+		{
+			Integer count = Integer.parseInt(brc.brewCommand.text);
+			String text = brc.brewRepository
+				.findTop20ByOrderByBrewDateDesc()
+				.stream()
+				.limit(count)
+				.map(this::pretty)
+				.reduce((a,b) -> String.format("%s\n%s",a,b))
+				.orElse("No brews found.");
+
+			return slackMessageFactory.createMessageBuilder().setText(text);
+		} catch (NumberFormatException e) {
+			return slackMessageFactory.createMessageBuilder()
+				.setText(String.format("(%s) is not a valid number.",brc.brewCommand.text));
+		}
+
+
+	}
+
 	SlackMessageBuilder consume(BrewRequestContext brc)
 	{
 		return null;
@@ -184,7 +208,7 @@ public class BrewCommandHandlerRepository extends CommandHandlerRepository<BrewR
 
 
 	String pretty(Brew brew) {
-		String text = String.format("%s was brewed by %s at %s, and is %s.",
+		String text = String.format("%s was brewed by %s on %s, and is %s.",
 			brew.getBrewName(),
 			brew.getBrewedBy(),
 			fdf.format(brew.getBrewDate()),

@@ -60,7 +60,7 @@ public class BrewCommandHandlersTest {
 
 		List<NamedCommand<BrewRequestContext>> namedCommands = brewCommandHandlerRepository.listAllFunctions();
 
-		assertEquals(8,namedCommands.size());
+		assertEquals(9,namedCommands.size());
 
 		List<String> commandNames = namedCommands.stream()
 			.map(namedCommand -> namedCommand.getCommandName())
@@ -73,6 +73,7 @@ public class BrewCommandHandlersTest {
 		assertTrue(commandNames.contains(""));
 		assertTrue(commandNames.contains("gone"));
 		assertTrue(commandNames.contains("debug"));
+		assertTrue(commandNames.contains("last"));
 
 	}
 
@@ -106,8 +107,6 @@ public class BrewCommandHandlersTest {
 		assertEquals("userName",capturedBrew.getBrewedBy());
 		assertNotNull(capturedBrew.getBrewDate());
 		assertFalse(capturedBrew.isGone());
-
-
 	}
 
 	@Test
@@ -152,7 +151,7 @@ public class BrewCommandHandlersTest {
 		);
 		SlackMessageBuilder builder = brewCommandHandlerRepository.today(brc);
 
-		assertEquals("{\"attachments\":[],\"text\":\"Blue Heeler was brewed by aglassman at " + dateString + ", and is still available.\"}",
+		assertEquals("{\"attachments\":[],\"text\":\"Blue Heeler was brewed by aglassman on " + dateString + ", and is still available.\"}",
 			builder.build());
 
 	}
@@ -170,7 +169,7 @@ public class BrewCommandHandlersTest {
 		);
 		SlackMessageBuilder builder = brewCommandHandlerRepository.today(brc);
 
-		assertEquals("{\"attachments\":[],\"text\":\"Blue Heeler was brewed by aglassman at " + dateString + ", and is all gone.\"}",
+		assertEquals("{\"attachments\":[],\"text\":\"Blue Heeler was brewed by aglassman on " + dateString + ", and is all gone.\"}",
 			builder.build());
 
 	}
@@ -245,6 +244,53 @@ public class BrewCommandHandlersTest {
 
 		verify(brc.brewRepository).save(b1);
 		verify(brc.brewRepository).save(b2);
+
+	}
+
+	@Test
+	public void testLast() {
+		BrewRequestContext brc = createBrewRequestContext("last 2");
+
+		Date date = new Date();
+		String dateString = fdf.format(date);
+
+		Brew b1 = new Brew(1L,"Blue Heeler", date, "aglassman", false);
+		Brew b2 = new Brew(1L,"Dark Sumatra", date, "frank", false);
+		Brew b3 = new Brew(1L,"Dark Sumatra", date, "frank", false);
+
+		when(brc.brewRepository.findTop20ByOrderByBrewDateDesc()).thenReturn(
+			Arrays.asList(
+				b1,
+				b2,
+				b3
+			)
+		);
+		SlackMessageBuilder builder = brewCommandHandlerRepository.last(brc);
+
+		assertEquals("{\"attachments\":[],\"text\":\"Blue Heeler was brewed by aglassman" +
+			" on " + dateString + ", and is still available.\\nDark Sumatra was brewed by frank on " +
+			dateString + ", and is still available.\"}",
+			builder.build());
+
+
+	}
+
+	@Test
+	public void testLastNone() {
+		BrewRequestContext brc = createBrewRequestContext("last 2");
+
+		Date date = new Date();
+		String dateString = fdf.format(date);
+
+
+		when(brc.brewRepository.findTop20ByOrderByBrewDateDesc()).thenReturn(
+			Arrays.asList()
+		);
+		SlackMessageBuilder builder = brewCommandHandlerRepository.last(brc);
+
+		assertEquals("{\"attachments\":[],\"text\":\"No brews found.\"}",
+			builder.build());
+
 
 	}
 }
