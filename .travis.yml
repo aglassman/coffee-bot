@@ -1,4 +1,6 @@
 language: java
+jdk:
+  - oraclejdk8
 rvm:
   - 2.0.0
 deploy:
