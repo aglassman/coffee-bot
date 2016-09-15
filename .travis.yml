@@ -13,6 +13,7 @@ deploy:
     secure: DJR+uWj9EB8r2AVVtxseH+bEFpphn1mOQPeMa59+CZrKpkl9EHwjZ/jnnc+eBCjZruTWO71k5OzAK1NnZVg9cJ9ONOJdKGJOZKtTykpUHFr7MWZWi6gwplG5pmKJj9ZkMhHArQ1TiNcl0QbyVFTXYMqY8OqmW/MYRudetVrh0KxNzoqz/Aqbj6ukfPtey2ZTCXzIf9Zs3/7Lwe3bgrvKnal0z0CXdXJNPppc/3PHXMVQnzWduh2lCcw90oUr90RhUiXwWlmANkwV+V/Kdj2C/7PT1BNRxggwvh4u2nIoRL4DMv4JJVuoLb7zbjbNV+mf5bLv6VkcUpGzuMn1OyvSaPlkTnJZF1lAsOHhIromly3pDx2Xwri/r633SrNYwWLHK9Pw7+IyXFai5KmUIcY+EBeKeboV8IVXeasMSHsMEu/2b8DSAnRuiprp5z2mQTnVcPQqyOorlOKuzCbunwWV4neQtwmVKZV+eB6zPZ0bRAV0M6M7HJuGWEhZt/AydeYMJCsBDHy/ACmjDivufawe4ukhb22eOLmWJEe0D2MyK0RYYiX8MuSmiHqjBzMz0FiCwJ6R4iSzp0jC5iMOrquvbD1yukkDEmFzbYxtmbETgE8pU0fwDTYBq6i98eouZ+Ks8CG8N66pLpnyj1hxBY1s0AJpHqf0XaOG0hffqWBHn+0=
   organization: mke-java-meetup
   space: development
+  name: coffee-bot-test
   on:
     repo: aglassman/coffee-bot
     branch: master
