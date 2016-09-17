@@ -18,5 +18,3 @@ deploy:
   on:
     repo: aglassman/coffee-bot
     branch: master
-  script:
-    - cf rename coffee-bot-blue coffee-bot
