@@ -49,7 +49,6 @@ task filter(type: Copy) {
     into '.'
     // Substitute property tokens in files
     expand('version': version)
-
 }
 
 assemble.dependsOn filter
