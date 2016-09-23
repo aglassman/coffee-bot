@@ -17,4 +17,4 @@ deploy:
   space: development
   on:
     repo: aglassman/coffee-bot
-    branch: master
+    tags: true
