@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CoffeeBotController
 {
 
-	@Value("app.version")
+	@Value("${app.version}")
 	private String version;
 
 	@RequestMapping("/hello")
