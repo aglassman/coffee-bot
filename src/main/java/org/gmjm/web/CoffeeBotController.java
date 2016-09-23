@@ -11,7 +11,7 @@ public class CoffeeBotController
 	@RequestMapping("/hello")
 	public String sayHello(@RequestParam String name) {
 		Assert.notNull(name);
-		return "Hello: " + name.trim()
+		return "Hello new: " + name.trim()
 			.substring(0,
 				name.length() >= 20 ? 20 : name.length());
 	}
