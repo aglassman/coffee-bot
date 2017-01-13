@@ -12,7 +12,7 @@ slack:
   nashorn:
     upload_token: A3ufMbZCPBvfUdXeAAmS
   webhook:
-    url: https://hooks.slack.com/services/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
+    url: https://hooks.slack.com/services/T0VD98HD0/Z0VQ29PQQ/aUZuWAk6jsSbuE35hwz9XcJf
   brew:
     brew_master_id: ASDF1234
     brew_master_username: frodo
