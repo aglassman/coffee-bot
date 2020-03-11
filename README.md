@@ -23,7 +23,7 @@ Commands
 * /coffee today
   * Prints a list of all the pots of coffee that have been brewed today, and if there is any left.
 
-# Environment Varialbes
+# Environment Variables
 
 * **slack.brew.brew_master_id** - The Brew Master's Slack ID - example: ASDF1234 
 * **slack.brew.brew_master_username** - The Brew Master's name - example: Jim
